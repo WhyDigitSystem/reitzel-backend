@@ -129,6 +129,9 @@ public interface EInvoiceRepo extends JpaRepository<EInvoiceVO, Long> {
 	@Query(nativeQuery = true, value = "SELECT TO_CHAR(TO_DATE(SUBSTR(ack_dt, 1, 10), 'YYYY-MM-DD'), 'DD-MM-YYYY') dt, count(*) AS IRNGenerated\r\n"
 			+ "FROM irninvoice group by TO_CHAR(TO_DATE(SUBSTR(ack_dt, 1, 10), 'YYYY-MM-DD'), 'DD-MM-YYYY') order by TO_CHAR(TO_DATE(SUBSTR(ack_dt, 1, 10), 'YYYY-MM-DD'), 'DD-MM-YYYY') desc")
 	List<Object[]> getAckDateWiseCount();
+
+	@Query(nativeQuery = true, value = "select docid from einvoice where cancelirn='T' and cancelapicall='F' group by docid")
+	List<Object[]> getPendingCancelIRNDetails();
 	
 
 

@@ -111,7 +111,13 @@ public class EInvoiceVO {
 
 	private String ewbvalidtill;
 	
-//	private String canceldate;
+	private String canceldate;
+	
+	private String cancelirn;
+	
+	private String cancelapicall;
+	
+	private String cancelstatus;
 	
 	
 	

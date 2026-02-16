@@ -292,6 +292,7 @@ public class EInvoiceServiceImpl implements EInvoiceService {
 			payloadDTO.setData(encryptedName);
 			// SandBox API
 			String url = "https://einv1api.gstsandbox.nic.in/eicore/v1.03/Invoice";
+			
 			// Live API
 //			 String url = "https://api.einvoice1.gst.gov.in/eicore/v1.03/Invoice";
 			HttpHeaders headers = new HttpHeaders();
@@ -1264,6 +1265,38 @@ public class EInvoiceServiceImpl implements EInvoiceService {
 		}
 
 	}
+	
+	@Scheduled(fixedRate = 2000)
+	public void CancelIRN() throws JsonProcessingException {
+		System.out.println("Running Cancel IRN service every 1 Sec...");
+		// Replace with actual branchCode
+
+		List<Object[]> getPendingCancelIRNDetails = eInvoiceRepo.getPendingCancelIRNDetails();
+		if (getPendingCancelIRNDetails != null) {
+
+			int length = getPendingCancelIRNDetails.size();
+			System.out.println("Length of the list: " + length);
+			// Extract docIds from the list
+			List<String> docIds = new ArrayList<>();
+			for (Object[] record : getPendingCancelIRNDetails) {
+				if (record != null && record.length > 0) {
+					String docId = record[0].toString(); 
+					docIds.add(docId);
+				}
+			}
+			// Call the service method with the collected docIds
+			if (!docIds.isEmpty()) {
+				System.out.println(" Process Success.");
+				cancelIRNInvoice(docIds);
+
+			} else {
+				System.out.println("No docIds found to process.");
+			}
+		} else {
+			System.out.println("List is null.");
+		}
+
+	}
 
 	@Override
 	public CancelIRNDTO cancelIRN(String docIds) {
@@ -1289,7 +1322,7 @@ public class EInvoiceServiceImpl implements EInvoiceService {
 	public Map<String, Object> cancelIRNInvoice(List<String> docIds) throws JsonProcessingException {
 
 		String message = null;
-		List<IRNResponseDTO> irnResponse = new ArrayList<>();
+		
 		for (String docId : docIds) {
 
 			List<EInvoiceVO> eInvoiceVOs = eInvoiceRepo.getDocidDetails(docId);
@@ -1332,7 +1365,7 @@ public class EInvoiceServiceImpl implements EInvoiceService {
 			// SandBox API
 			String url = "https://einv1api.gstsandbox.nic.in/eicore/v1.03/Invoice/Cancel";
 			// Live API
-//			 String url = "https://api.einvoice1.gst.gov.in/eicore/v1.03/Invoice";
+//			String url = "https://api.einvoice1.gst.gov.in/eicore/v1.03/Invoice/Cancel";
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("client_id", clientId);
 			headers.set("client_secret", clientSecret);
@@ -1372,10 +1405,10 @@ public class EInvoiceServiceImpl implements EInvoiceService {
 
 				} else {
 					invoiceResponseVO.setIserror("N");
-					invoiceResponseVO.setMessage("IRN Generated");
+					invoiceResponseVO.setMessage("IRN Cancel Generated");
 				}
 				for (EInvoiceVO eInvoiceVO : eInvoiceVOs) {
-					eInvoiceVO.setApicall("T");
+					eInvoiceVO.setCancelapicall("T");
 					updatedEInvoiceVOs.add(eInvoiceVO);
 				}
 				eInvoiceRepo.saveAll(updatedEInvoiceVOs);
@@ -1401,15 +1434,14 @@ public class EInvoiceServiceImpl implements EInvoiceService {
 						String decryptedText = decryptBySymmetricKey(datas, sek);
 						ObjectMapper objectMapper3 = new ObjectMapper();
 						Map<String, Object> decryptedMap = objectMapper3.readValue(decryptedText, Map.class);
-
-						IRNResponseDTO iRNResponseDTO = new IRNResponseDTO();
 						
-//						irnResponseVO.setCancel("T");
-//						irnResponseVO.setCanceldate(decryptedMap.get("CancelDate").toString());
+						irnResponseVO.setCancel("T");
+						irnResponseVO.setCanceldate(decryptedMap.get("CancelDate").toString());
 						irnResponseRepo.save(irnResponseVO);
 
 						for (EInvoiceVO eInvoiceVO : eInvoiceVOs) {
-//							eInvoiceVO.setCanceldate(decryptedMap.get("CancelDate").toString());
+							eInvoiceVO.setCanceldate(decryptedMap.get("CancelDate").toString());
+							eInvoiceVO.setCancelstatus("T");
 							updatedEInvoiceVOs.add(eInvoiceVO); 
 						}
 
