@@ -1,0 +1,13 @@
+package com.macurexdashboard.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class EInvoiceDTO {
+	private Long id;
+	
+}
